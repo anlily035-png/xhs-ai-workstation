@@ -279,8 +279,8 @@ async function fetchFromPlugin() {
         reject(new Error('未检测到插件，请确认已安装小红书AI工作台助手插件'));
         return;
       }
-      chrome.runtime.sendMessage(
-        undefined,
+     chrome.runtime.sendMessage(
+        'pfdnkejimgcdghoinjmacapficnailln',
         { action: 'fetchContent', url: url },
         function(res) {
           if (chrome.runtime.lastError) {
