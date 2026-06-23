@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f7;min-height:100vh;color:#1a1a1a}
-:root{--red:#FF2442;--red-light:#fff0f2;--red-border:#ffcdd5;--border:#e5e5e5;--bg:#fff;--bg2:#f5f5f7;--text:#1a1a1a;--text2:#666;--text3:#999;--radius:10px;--radius-sm:7px}
+:root{--red:#FF2442;--red-light:#fff0f2;--red-border:#ffcdd5;--border:#e5e5e5;--text:#1a1a1a;--text2:#666;--text3:#999;--radius:10px;--radius-sm:7px}
 .nav{display:flex;align-items:center;height:52px;background:#fff;border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:100}
 .nav-logo{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--text);margin-right:24px}
 .nav-logo-icon{width:22px;height:22px;background:var(--red);border-radius:6px;display:flex;align-items:center;justify-content:center}
@@ -95,7 +95,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </style>
 </head>
 <body>
-
 <nav class="nav">
   <div class="nav-logo">
     <div class="nav-logo-icon"><i class="ti ti-sparkles"></i></div>
@@ -119,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div id="uploadedPreview" class="uploaded-preview">
       <img id="previewImg" src="" alt="预览" />
       <span id="previewName"></span>
-      <button class="remove-btn" onclick="removeUpload()">×</button>
+      <button class="remove-btn" onclick="removeUpload()">x</button>
     </div>
     <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
       <i class="ti ti-photo-plus"></i>
@@ -134,11 +133,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div style="margin-top:16px">
       <div class="section-label"><i class="ti ti-adjustments-horizontal" style="font-size:14px"></i> 笔记风格</div>
       <div class="chips" id="styleChips">
-        <div class="chip active" onclick="selectChip(this,'styleChips','种草安利')">🌸 种草安利</div>
-        <div class="chip" onclick="selectChip(this,'styleChips','干货教程')">📚 干货教程</div>
-        <div class="chip" onclick="selectChip(this,'styleChips','测评对比')">⚡ 测评对比</div>
-        <div class="chip" onclick="selectChip(this,'styleChips','情绪共鸣')">💭 情绪共鸣</div>
-        <div class="chip" onclick="selectChip(this,'styleChips','生活记录')">📸 生活记录</div>
+        <div class="chip active" onclick="selectChip(this,'styleChips','种草安利')">种草安利</div>
+        <div class="chip" onclick="selectChip(this,'styleChips','干货教程')">干货教程</div>
+        <div class="chip" onclick="selectChip(this,'styleChips','测评对比')">测评对比</div>
+        <div class="chip" onclick="selectChip(this,'styleChips','情绪共鸣')">情绪共鸣</div>
+        <div class="chip" onclick="selectChip(this,'styleChips','生活记录')">生活记录</div>
       </div>
     </div>
   </div>
@@ -149,10 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </button>
     <p class="hint">生成 5 个标题备选 + 正文 + 标签</p>
   </div>
-  <div class="loading" id="rewriteLoading">
-    <div class="spinner"></div>
-    <p>AI 正在创作中，请稍候…</p>
-  </div>
+  <div class="loading" id="rewriteLoading"><div class="spinner"></div><p>AI 正在创作中，请稍候...</p></div>
   <div class="result-card card" id="rewriteResult">
     <div class="result-header">
       <h3><i class="ti ti-check-circle" style="color:var(--red);font-size:16px"></i> 改写完成</h3>
@@ -202,11 +198,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div style="margin-top:16px">
       <div class="section-label"><i class="ti ti-palette" style="font-size:14px"></i> 风格参考</div>
       <div class="chips" id="imgStyleChips">
-        <div class="chip active" onclick="selectChip(this,'imgStyleChips','日系小清新')">🌸 日系小清新</div>
-        <div class="chip" onclick="selectChip(this,'imgStyleChips','极简高级感')">🤍 极简高级感</div>
-        <div class="chip" onclick="selectChip(this,'imgStyleChips','ins博主风')">📸 ins博主风</div>
-        <div class="chip" onclick="selectChip(this,'imgStyleChips','国潮插画')">🖌️ 国潮插画</div>
-        <div class="chip" onclick="selectChip(this,'imgStyleChips','自然光写实')">☀️ 自然光写实</div>
+        <div class="chip active" onclick="selectChip(this,'imgStyleChips','日系小清新')">日系小清新</div>
+        <div class="chip" onclick="selectChip(this,'imgStyleChips','极简高级感')">极简高级感</div>
+        <div class="chip" onclick="selectChip(this,'imgStyleChips','ins博主风')">ins博主风</div>
+        <div class="chip" onclick="selectChip(this,'imgStyleChips','国潮插画')">国潮插画</div>
+        <div class="chip" onclick="selectChip(this,'imgStyleChips','自然光写实')">自然光写实</div>
       </div>
     </div>
   </div>
@@ -217,10 +213,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </button>
     <p class="hint">一次生成 4 张备选，点击图片可放大，右键保存</p>
   </div>
-  <div class="loading" id="imgLoading">
-    <div class="spinner"></div>
-    <p>AI 正在构图中，约需 15-30 秒…</p>
-  </div>
+  <div class="loading" id="imgLoading"><div class="spinner"></div><p>AI 正在构图中，约需 15-30 秒...</p></div>
   <div class="result-card card" id="imgResult">
     <div class="result-header">
       <h3><i class="ti ti-photo-check" style="color:var(--red);font-size:16px"></i> 生成完成</h3>
@@ -232,10 +225,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <button class="lightbox-close" onclick="closeLightbox()">x</button>
   <img id="lightboxImg" src="" alt="放大图" />
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -247,17 +239,83 @@ function removeUpload(){uploadedImageData=null;document.getElementById('fileInpu
 function showTip(id,msg){var el=document.getElementById(id);el.querySelector('span').textContent=msg;el.classList.add('show')}
 function hideTip(id){document.getElementById(id).classList.remove('show')}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2200)}
-async function doRewrite(){var url=document.getElementById('urlInput').value.trim(),topic=document.getElementById('topicInput').value.trim();if(!url&&!uploadedImageData&&!topic){showTip('tip','请输入参考链接、上传图片，或填写内容主题，至少提供一项。');return}hideTip('tip');document.getElementById('rewriteBtn').disabled=true;document.getElementById('rewriteLoading').classList.add('show');document.getElementById('rewriteResult').classList.remove('show');var ctx=[];if(url)ctx.push('参考链接：'+url);if(topic)ctx.push('内容主题：'+topic);if(uploadedImageData)ctx.push('（用户已上传参考图片作为灵感）');var userPrompt='请根据以下信息，创作一篇"'+currentStyle+'"风格的小红书笔记。\n\n'+ctx.join('\n')+'\n\n输出格式（严格JSON，不含其他任何内容）：\n{"titles":["标题1","标题2","标题3","标题4","标题5"],"body":"正文，有emoji，分段清晰，280-350字","tags":["#标签1","#标签2","#标签3","#标签4","#标签5","#标签6"]}\n\n要求：标题各有不同角度和钩子；正文真实接地气，不要营销腔；标签贴合搜索习惯。';try{var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:'你是专业的小红书内容运营专家。严格按JSON格式输出，不含任何额外文字或markdown标记。',messages:[{role:'user',content:userPrompt}]})});var data=await res.json();var text=data.content.map(function(i){return i.text||''}).join('');var clean=text.replace(/```json|```/g,'').trim();var parsed=JSON.parse(clean);renderRewrite(parsed)}catch(e){showTip('tip','生成失败，请稍后重试。('+e.message+')')}document.getElementById('rewriteBtn').disabled=false;document.getElementById('rewriteLoading').classList.remove('show')}
-function renderRewrite(data){var list=document.getElementById('titleList');list.innerHTML='';selectedTitleText='';(data.titles||[]).forEach(function(t,i){var div=document.createElement('div');div.className='title-item';div.innerHTML='<span class="title-num">'+(i+1)+'</span><span class="title-text">'+esc(t)+'</span><button class="copy-icon" title="复制" onclick="event.stopPropagation();cp(\''+esc(t)+'\')"><i class="ti ti-copy"></i></button>';div.addEventListener('click',function(){list.querySelectorAll('.title-item').forEach(function(it){it.classList.remove('selected')});div.classList.add('selected');selectedTitleText=t});list.appendChild(div)});var body=data.body||'',ba=document.getElementById('bodyArea');ba.value=body;document.getElementById('charCount').textContent=body.length+' 字';ba.oninput=function(){document.getElementById('charCount').textContent=ba.value.length+' 字'};var wrap=document.getElementById('tagsWrap');wrap.innerHTML='';(data.tags||[]).forEach(function(tag){var span=document.createElement('span');span.className='tag';span.textContent=tag.startsWith('#')?tag:'#'+tag;span.title='点击复制';span.onclick=function(){cp(span.textContent)};wrap.appendChild(span)});document.getElementById('rewriteResult').classList.add('show')}
+
+async function doRewrite(){
+  var url=document.getElementById('urlInput').value.trim(),topic=document.getElementById('topicInput').value.trim();
+  if(!url&&!uploadedImageData&&!topic){showTip('tip','请输入参考链接、上传图片，或填写内容主题，至少提供一项。');return}
+  hideTip('tip');
+  document.getElementById('rewriteBtn').disabled=true;
+  document.getElementById('rewriteLoading').classList.add('show');
+  document.getElementById('rewriteResult').classList.remove('show');
+  var ctx=[];
+  if(url)ctx.push('参考链接：'+url);
+  if(topic)ctx.push('内容主题：'+topic);
+  if(uploadedImageData)ctx.push('用户已上传参考图片作为灵感');
+  var userPrompt='请根据以下信息，创作一篇"'+currentStyle+'"风格的小红书笔记。\n\n'+ctx.join('\n')+'\n\n输出格式（严格JSON，不含其他任何内容）：\n{"titles":["标题1","标题2","标题3","标题4","标题5"],"body":"正文，有emoji，分段清晰，280-350字","tags":["#标签1","#标签2","#标签3","#标签4","#标签5","#标签6"]}\n\n要求：标题各有不同角度和钩子；正文真实接地气，不要营销腔；标签贴合搜索习惯。';
+  try{
+    var res=await fetch('/api/rewrite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:'你是专业的小红书内容运营专家。严格按JSON格式输出，不含任何额外文字或markdown标记。',messages:[{role:'user',content:userPrompt}]})});
+    var data=await res.json();
+    var text=data.content[0].text;
+    var clean=text.replace(/```json|```/g,'').trim();
+    var parsed=JSON.parse(clean);
+    renderRewrite(parsed);
+  }catch(e){showTip('tip','生成失败，请稍后重试。('+e.message+')')}
+  document.getElementById('rewriteBtn').disabled=false;
+  document.getElementById('rewriteLoading').classList.remove('show');
+}
+
+function renderRewrite(data){
+  var list=document.getElementById('titleList');list.innerHTML='';selectedTitleText='';
+  (data.titles||[]).forEach(function(t,i){var div=document.createElement('div');div.className='title-item';div.innerHTML='<span class="title-num">'+(i+1)+'</span><span class="title-text">'+esc(t)+'</span><button class="copy-icon" title="复制" onclick="event.stopPropagation();cp(\''+esc(t)+'\')"><i class="ti ti-copy"></i></button>';div.addEventListener('click',function(){list.querySelectorAll('.title-item').forEach(function(it){it.classList.remove('selected')});div.classList.add('selected');selectedTitleText=t});list.appendChild(div)});
+  var body=data.body||'',ba=document.getElementById('bodyArea');ba.value=body;document.getElementById('charCount').textContent=body.length+' 字';ba.oninput=function(){document.getElementById('charCount').textContent=ba.value.length+' 字'};
+  var wrap=document.getElementById('tagsWrap');wrap.innerHTML='';
+  (data.tags||[]).forEach(function(tag){var span=document.createElement('span');span.className='tag';span.textContent=tag.startsWith('#')?tag:'#'+tag;span.title='点击复制';span.onclick=function(){cp(span.textContent)};wrap.appendChild(span)});
+  document.getElementById('rewriteResult').classList.add('show');
+}
+
 function copyField(type){if(type==='body'){cp(document.getElementById('bodyArea').value)}else{var tags=Array.from(document.getElementById('tagsWrap').querySelectorAll('.tag')).map(function(t){return t.textContent}).join(' ');cp(tags)}}
 function copyAll(){var title=selectedTitleText||(document.getElementById('titleList').querySelector('.title-text')||{}).textContent||'',body=document.getElementById('bodyArea').value,tags=Array.from(document.getElementById('tagsWrap').querySelectorAll('.tag')).map(function(t){return t.textContent}).join(' ');cp([title,'',body,'',tags].join('\n'))}
-async function doImgGen(){var prompt=document.getElementById('promptInput').value.trim();if(!prompt){showTip('imgTip','请先输入图片描述');return}hideTip('imgTip');document.getElementById('imgBtn').disabled=true;document.getElementById('imgLoading').classList.add('show');document.getElementById('imgResult').classList.remove('show');var enhancedPrompt=prompt;try{var pRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,messages:[{role:'user',content:'你是AI绘图提示词专家。将以下中文描述优化为高质量英文图片生成提示词，风格：'+currentImgStyle+'，适合小红书封面，不超过80词，只输出提示词本身：\n\n'+prompt}]})});var pData=await pRes.json();enhancedPrompt=pData.content[0].text.trim()}catch(e){}try{var res=await fetch('/api/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:enhancedPrompt,image_size:currentRatio})});var data=await res.json();if(data.error){showTip('imgTip',data.error)}else{renderImgGrid(data.images||[])}}catch(e){showTip('imgTip','生图失败，请稍后重试。('+e.message+')')}document.getElementById('imgBtn').disabled=false;document.getElementById('imgLoading').classList.remove('show')}
+
+async function doImgGen(){
+  var prompt=document.getElementById('promptInput').value.trim();
+  if(!prompt){showTip('imgTip','请先输入图片描述');return}
+  hideTip('imgTip');
+  document.getElementById('imgBtn').disabled=true;
+  document.getElementById('imgLoading').classList.add('show');
+  document.getElementById('imgResult').classList.remove('show');
+  var enhancedPrompt=prompt;
+  try{
+    var pRes=await fetch('/api/rewrite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:'你是AI绘图提示词专家。将以下中文描述优化为高质量英文图片生成提示词，风格：'+currentImgStyle+'，适合小红书封面，不超过80词，只输出提示词本身：\n\n'+prompt}]})});
+    var pData=await pRes.json();
+    enhancedPrompt=pData.content[0].text.trim();
+  }catch(e){}
+  try{
+    var res=await fetch('/api/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:enhancedPrompt,image_size:currentRatio})});
+    var data=await res.json();
+    if(data.error){showTip('imgTip',data.error)}else{renderImgGrid(data.images||[])}
+  }catch(e){showTip('imgTip','生图失败，请稍后重试。('+e.message+')')}
+  document.getElementById('imgBtn').disabled=false;
+  document.getElementById('imgLoading').classList.remove('show');
+}
+
 function renderImgGrid(images){var grid=document.getElementById('imgGrid');grid.innerHTML='';if(!images.length){grid.innerHTML='<p style="color:var(--text3);font-size:13px;grid-column:1/-1;text-align:center;padding:20px">未返回图片，请重试</p>'}else{images.forEach(function(img){var url=img.url||img.b64_json&&('data:image/png;base64,'+img.b64_json);if(!url)return;var box=document.createElement('div');box.className='img-box';box.innerHTML='<img src="'+url+'" alt="生成图片" onclick="openLightbox(\''+url+'\')" /><button class="img-download" onclick="downloadImg(\''+url+'\',event)"><i class="ti ti-download" style="font-size:13px"></i> 保存</button>';grid.appendChild(box)})}document.getElementById('imgResult').classList.add('show')}
 function openLightbox(url){document.getElementById('lightboxImg').src=url;document.getElementById('lightbox').classList.add('show')}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('show')}
 function downloadImg(url,e){e.stopPropagation();var a=document.createElement('a');a.href=url;a.download='xhs-ai-'+Date.now()+'.png';a.click()}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function cp(text){navigator.clipboard.writeText(text).then(function(){showToast('已复制到剪贴板 ✓')}).catch(function(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('已复制到剪贴板 ✓')})}
+function cp(text){navigator.clipboard.writeText(text).then(function(){showToast('已复制到剪贴板')}).catch(function(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('已复制到剪贴板')})}
+
+// 页面加载时检查URL参数（插件传过来的内容）
+window.addEventListener('load',function(){
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('title')||params.get('body')){
+    var content='';
+    if(params.get('title'))content+='标题：'+params.get('title')+'\n\n';
+    if(params.get('body'))content+=params.get('body');
+    document.getElementById('urlInput').value=content;
+    showToast('已自动填入笔记内容，点击改写即可');
+  }
+});
 </script>
 </body>
 </html>
