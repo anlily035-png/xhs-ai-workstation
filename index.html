@@ -82,16 +82,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .gen-img-box:hover img{transform:scale(1.02)}
 .img-download{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;display:none;align-items:center;gap:4px;font-family:inherit}
 .gen-img-box:hover .img-download{display:flex}
+.fetch-status{display:none;margin-top:10px;font-size:13px;color:#0369a1;align-items:center;gap:8px;padding:8px 12px;background:#f0f9ff;border-radius:var(--radius-sm);border:1px solid #bae6fd}
+.fetch-status.show{display:flex}
+.fetch-status.error{background:#fff8f9;border-color:var(--red-border);color:#cc1f35}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a1a1a;color:#fff;padding:8px 18px;border-radius:var(--radius-sm);font-size:13px;opacity:0;transition:all .22s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center}
 .lightbox.show{display:flex}
 .lightbox img{max-width:90vw;max-height:90vh;border-radius:var(--radius);object-fit:contain}
 .lightbox-close{position:absolute;top:16px;right:20px;color:#fff;font-size:28px;cursor:pointer;background:none;border:none;line-height:1}
-.plugin-banner{background:linear-gradient(135deg,#fff0f2,#fff);border:1px solid var(--red-border);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
-.plugin-banner i{font-size:20px;color:var(--red)}
-.plugin-banner p{font-size:13px;color:var(--text2);line-height:1.6}
-.plugin-banner strong{color:var(--red)}
 </style>
 </head>
 <body>
@@ -109,12 +108,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="page-rewrite" class="page active">
   <div class="hero">
     <h1>让 AI 替你写更懂小红书的笔记</h1>
-    <p>在小红书笔记页面点击 <em>✦ AI 改写</em> 按钮 · 自动生成标题 / 正文 / 标签</p>
+    <p>粘贴链接自动读取 · 生成 <em>标题 / 正文 / 标签</em> · 一键复制发布</p>
   </div>
 
-  <div class="plugin-banner" id="pluginBanner">
-    <i class="ti ti-info-circle"></i>
-    <p>请先去小红书打开一篇笔记，点击页面上的 <strong>✦ AI 改写</strong> 按钮，内容会自动填入这里。</p>
+  <div class="card">
+    <div class="section-label"><i class="ti ti-link" style="font-size:14px"></i> 小红书笔记链接</div>
+    <div style="display:flex;gap:8px">
+      <input class="text-input" id="urlInput" type="text" placeholder="粘贴小红书笔记链接..." style="flex:1" />
+      <button class="btn-primary" id="fetchBtn" onclick="fetchFromUrl()" style="height:38px;padding:0 16px;white-space:nowrap">
+        <i class="ti ti-download" style="font-size:14px"></i> 读取
+      </button>
+    </div>
+    <div class="fetch-status" id="fetchStatus">
+      <div class="spinner" style="width:14px;height:14px;border-width:2px;margin:0;flex-shrink:0"></div>
+      <span id="fetchStatusText">正在读取笔记内容...</span>
+    </div>
+    <p class="hint">插件会自动打开链接读取内容，读取完自动关闭</p>
   </div>
 
   <div class="src-preview" id="srcPreview">
@@ -123,7 +132,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <div class="card" id="imgCard" style="display:none">
-    <div class="section-label"><i class="ti ti-photo" style="font-size:14px"></i> 原笔记图片（可直接使用）</div>
+    <div class="section-label"><i class="ti ti-photo" style="font-size:14px"></i> 原笔记图片</div>
     <div class="img-grid" id="imgGrid"></div>
   </div>
 
@@ -131,7 +140,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div style="margin-bottom:16px">
       <div class="section-label"><i class="ti ti-pencil" style="font-size:14px"></i> 补充主题（选填）</div>
       <input class="text-input" id="topicInput" type="text" placeholder="例：公务员备考 / 主题班会 PPT / 好物推荐" />
-      <p class="hint">插件已自动填入内容，也可手动补充主题</p>
     </div>
     <div>
       <div class="section-label"><i class="ti ti-adjustments-horizontal" style="font-size:14px"></i> 笔记风格</div>
@@ -238,8 +246,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="toast" id="toast"></div>
 
 <script>
+var PLUGIN_ID = 'pfdnkejimgcdghoinjmacapficnailln';
 var currentStyle='种草安利',currentRatio='1024x1024',currentImgStyle='日系小清新',selectedTitleText='';
-var pluginData = { title:'', body:'', images:[] };
+var pluginData={title:'',body:'',images:[]};
 
 function switchTab(tab){document.querySelectorAll('.nav-tab').forEach(function(t,i){t.classList.toggle('active',(tab==='rewrite'&&i===0)||(tab==='imggen'&&i===1))});document.getElementById('page-rewrite').classList.toggle('active',tab==='rewrite');document.getElementById('page-imggen').classList.toggle('active',tab==='imggen')}
 function selectChip(el,groupId,val){document.getElementById(groupId).querySelectorAll('.chip').forEach(function(c){c.classList.remove('active')});el.classList.add('active');if(groupId==='styleChips')currentStyle=val;else if(groupId==='ratioChips')currentRatio=val;else if(groupId==='imgStyleChips')currentImgStyle=val}
@@ -247,186 +256,139 @@ function showTip(id,msg){var el=document.getElementById(id);el.querySelector('sp
 function hideTip(id){document.getElementById(id).classList.remove('show')}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2200)}
 
-window.addEventListener('load', function() {
-  var params = new URLSearchParams(window.location.search);
-  var title = params.get('title') || '';
-  var body = params.get('body') || '';
-  var imagesRaw = params.get('images') || '[]';
-  var images = [];
-  try { images = JSON.parse(imagesRaw); } catch(e) {}
-
-  if (title || body) {
-    pluginData = { title: title, body: body, images: images };
-    document.getElementById('pluginBanner').style.display = 'none';
-    document.getElementById('srcPreview').classList.add('show');
-    document.getElementById('srcTitle').textContent = title;
-    document.getElementById('srcBody').textContent = body;
-    if (images.length > 0) {
-      document.getElementById('imgCard').style.display = 'block';
-      var grid = document.getElementById('imgGrid');
-      grid.innerHTML = '';
-      images.forEach(function(src) {
-        var box = document.createElement('div');
-        box.className = 'img-box';
-        var img = document.createElement('img');
-        img.src = src;
-        img.alt = '笔记图片';
-        img.onerror = function() { box.innerHTML = '<div class="img-box-placeholder"><i class="ti ti-photo-off"></i></div>'; };
-        img.onclick = function() { openLightbox(src); };
-        box.appendChild(img);
-        grid.appendChild(box);
-      });
-    }
-    showToast('笔记内容已自动填入，选择风格后点击改写');
-    if (title) document.getElementById('topicInput').value = title;
-    history.replaceState({}, '', window.location.pathname);
+function fillContent(data){
+  pluginData={title:data.title||'',body:data.body||'',images:data.images||[]};
+  document.getElementById('srcPreview').classList.add('show');
+  document.getElementById('srcTitle').textContent=pluginData.title;
+  document.getElementById('srcBody').textContent=pluginData.body;
+  if(pluginData.images.length>0){
+    document.getElementById('imgCard').style.display='block';
+    var grid=document.getElementById('imgGrid');
+    grid.innerHTML='';
+    pluginData.images.forEach(function(src){
+      var box=document.createElement('div');box.className='img-box';
+      var img=document.createElement('img');img.src=src;img.alt='笔记图片';
+      img.onerror=function(){box.innerHTML='<div class="img-box-placeholder"><i class="ti ti-photo-off"></i></div>'};
+      img.onclick=function(){openLightbox(src)};
+      box.appendChild(img);grid.appendChild(box);
+    });
   }
-});
+  if(pluginData.title)document.getElementById('topicInput').value=pluginData.title;
+  showToast('笔记内容读取成功！');
+}
 
-async function doRewrite() {
-  var topic = document.getElementById('topicInput').value.trim();
-  if (!pluginData.title && !pluginData.body && !topic) {
-    showTip('tip', '请先从小红书笔记页面点击 AI 改写按钮，或填写内容主题');
+function fetchFromUrl(){
+  var url=document.getElementById('urlInput').value.trim();
+  if(!url||!url.includes('xiaohongshu.com')){showTip('tip','请输入正确的小红书笔记链接');return}
+  hideTip('tip');
+  var statusEl=document.getElementById('fetchStatus');
+  document.getElementById('fetchStatusText').textContent='正在打开笔记页面读取内容，请稍候...';
+  statusEl.className='fetch-status show';
+  document.getElementById('fetchBtn').disabled=true;
+
+  window.addEventListener('xhs_fetch_result',function handler(e){
+    window.removeEventListener('xhs_fetch_result',handler);
+    statusEl.className='fetch-status';
+    document.getElementById('fetchBtn').disabled=false;
+    var result=e.detail;
+    if(result.error){showTip('tip',result.error);return}
+    fillContent(result);
+  });
+
+  if(typeof chrome==='undefined'||!chrome.runtime){
+    statusEl.className='fetch-status';
+    document.getElementById('fetchBtn').disabled=false;
+    showTip('tip','未检测到插件，请确认已安装小红书AI工作台助手插件');
     return;
   }
+
+  chrome.runtime.sendMessage(PLUGIN_ID,{action:'openAndFetch',url:url},function(response){
+    if(chrome.runtime.lastError){
+      statusEl.className='fetch-status';
+      document.getElementById('fetchBtn').disabled=false;
+      showTip('tip','插件通信失败，请刷新页面重试');
+    }
+  });
+}
+
+window.addEventListener('load',function(){
+  var params=new URLSearchParams(window.location.search);
+  var title=params.get('title')||'';
+  var body=params.get('body')||'';
+  var images=[];
+  try{images=JSON.parse(params.get('images')||'[]')}catch(e){}
+  if(title||body){fillContent({title:title,body:body,images:images});history.replaceState({},'',window.location.pathname)}
+});
+
+window.addEventListener('xhs_fetch_result',function(e){
+  var statusEl=document.getElementById('fetchStatus');
+  statusEl.className='fetch-status';
+  document.getElementById('fetchBtn').disabled=false;
+  var result=e.detail;
+  if(result.error){showTip('tip',result.error);return}
+  fillContent(result);
+});
+
+async function doRewrite(){
+  var topic=document.getElementById('topicInput').value.trim();
+  if(!pluginData.title&&!pluginData.body&&!topic){showTip('tip','请先读取笔记内容或填写主题');return}
   hideTip('tip');
-  document.getElementById('rewriteBtn').disabled = true;
+  document.getElementById('rewriteBtn').disabled=true;
   document.getElementById('rewriteLoading').classList.add('show');
   document.getElementById('rewriteResult').classList.remove('show');
-
-  var ctx = [];
-  if (pluginData.title) ctx.push('原笔记标题：' + pluginData.title);
-  if (pluginData.body) ctx.push('原笔记正文：' + pluginData.body);
-  if (topic && topic !== pluginData.title) ctx.push('补充主题：' + topic);
-
-  var userPrompt = '请根据以下信息，创作一篇"' + currentStyle + '"风格的小红书笔记。\n\n'
-    + ctx.join('\n')
-    + '\n\n输出格式（严格JSON，不含其他任何内容）：\n'
-    + '{"titles":["标题1","标题2","标题3","标题4","标题5"],"body":"正文，有emoji，分段清晰，280-350字","tags":["#标签1","#标签2","#标签3","#标签4","#标签5","#标签6"]}\n\n'
-    + '要求：标题各有不同角度和钩子；正文真实接地气；标签贴合搜索习惯。';
-
-  try {
-    var res = await fetch('/api/rewrite', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        system: '你是专业的小红书内容运营专家。严格按JSON格式输出，不含任何额外文字或markdown标记。',
-        messages: [{role: 'user', content: userPrompt}]
-      })
-    });
-    var data = await res.json();
-    var text = data.content[0].text;
-    var clean = text.replace(/```json|```/g, '').trim();
-    var parsed = JSON.parse(clean);
+  var ctx=[];
+  if(pluginData.title)ctx.push('原笔记标题：'+pluginData.title);
+  if(pluginData.body)ctx.push('原笔记正文：'+pluginData.body);
+  if(topic&&topic!==pluginData.title)ctx.push('补充主题：'+topic);
+  var userPrompt='请根据以下信息，创作一篇"'+currentStyle+'"风格的小红书笔记。\n\n'+ctx.join('\n')+'\n\n输出格式（严格JSON，不含其他任何内容）：\n{"titles":["标题1","标题2","标题3","标题4","标题5"],"body":"正文，有emoji，分段清晰，280-350字","tags":["#标签1","#标签2","#标签3","#标签4","#标签5","#标签6"]}\n\n要求：标题各有不同角度和钩子；正文真实接地气；标签贴合搜索习惯。';
+  try{
+    var res=await fetch('/api/rewrite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:'你是专业的小红书内容运营专家。严格按JSON格式输出，不含任何额外文字或markdown标记。',messages:[{role:'user',content:userPrompt}]})});
+    var data=await res.json();
+    var text=data.content[0].text;
+    var clean=text.replace(/```json|```/g,'').trim();
+    var parsed=JSON.parse(clean);
     renderRewrite(parsed);
-  } catch(e) {
-    showTip('tip', '生成失败，请稍后重试。(' + e.message + ')');
-  }
-
-  document.getElementById('rewriteBtn').disabled = false;
+  }catch(e){showTip('tip','生成失败，请稍后重试。('+e.message+')')}
+  document.getElementById('rewriteBtn').disabled=false;
   document.getElementById('rewriteLoading').classList.remove('show');
 }
 
-function renderRewrite(data) {
-  var list = document.getElementById('titleList');
-  list.innerHTML = '';
-  selectedTitleText = '';
-  (data.titles||[]).forEach(function(t,i) {
-    var div = document.createElement('div');
-    div.className = 'title-item';
-    div.innerHTML = '<span class="title-num">'+(i+1)+'</span><span class="title-text">'+esc(t)+'</span><button class="copy-icon" onclick="event.stopPropagation();cp(\''+esc(t)+'\')"><i class="ti ti-copy"></i></button>';
-    div.addEventListener('click', function() {
-      list.querySelectorAll('.title-item').forEach(function(it){it.classList.remove('selected')});
-      div.classList.add('selected');
-      selectedTitleText = t;
-    });
-    list.appendChild(div);
-  });
-  var body = data.body || '';
-  var ba = document.getElementById('bodyArea');
-  ba.value = body;
-  document.getElementById('charCount').textContent = body.length + ' 字';
-  ba.oninput = function(){ document.getElementById('charCount').textContent = ba.value.length + ' 字'; };
-  var wrap = document.getElementById('tagsWrap');
-  wrap.innerHTML = '';
-  (data.tags||[]).forEach(function(tag) {
-    var span = document.createElement('span');
-    span.className = 'tag';
-    span.textContent = tag.startsWith('#') ? tag : '#'+tag;
-    span.onclick = function(){ cp(span.textContent); };
-    wrap.appendChild(span);
-  });
+function renderRewrite(data){
+  var list=document.getElementById('titleList');list.innerHTML='';selectedTitleText='';
+  (data.titles||[]).forEach(function(t,i){var div=document.createElement('div');div.className='title-item';div.innerHTML='<span class="title-num">'+(i+1)+'</span><span class="title-text">'+esc(t)+'</span><button class="copy-icon" onclick="event.stopPropagation();cp(\''+esc(t)+'\')"><i class="ti ti-copy"></i></button>';div.addEventListener('click',function(){list.querySelectorAll('.title-item').forEach(function(it){it.classList.remove('selected')});div.classList.add('selected');selectedTitleText=t});list.appendChild(div)});
+  var body=data.body||'',ba=document.getElementById('bodyArea');ba.value=body;document.getElementById('charCount').textContent=body.length+' 字';ba.oninput=function(){document.getElementById('charCount').textContent=ba.value.length+' 字'};
+  var wrap=document.getElementById('tagsWrap');wrap.innerHTML='';
+  (data.tags||[]).forEach(function(tag){var span=document.createElement('span');span.className='tag';span.textContent=tag.startsWith('#')?tag:'#'+tag;span.onclick=function(){cp(span.textContent)};wrap.appendChild(span)});
   document.getElementById('rewriteResult').classList.add('show');
 }
 
-function copyField(type) {
-  if (type==='body') { cp(document.getElementById('bodyArea').value); }
-  else {
-    var tags = Array.from(document.getElementById('tagsWrap').querySelectorAll('.tag')).map(function(t){return t.textContent}).join(' ');
-    cp(tags);
-  }
-}
+function copyField(type){if(type==='body'){cp(document.getElementById('bodyArea').value)}else{var tags=Array.from(document.getElementById('tagsWrap').querySelectorAll('.tag')).map(function(t){return t.textContent}).join(' ');cp(tags)}}
+function copyAll(){var title=selectedTitleText||(document.getElementById('titleList').querySelector('.title-text')||{}).textContent||'',body=document.getElementById('bodyArea').value,tags=Array.from(document.getElementById('tagsWrap').querySelectorAll('.tag')).map(function(t){return t.textContent}).join(' ');cp([title,'',body,'',tags].join('\n'))}
 
-function copyAll() {
-  var title = selectedTitleText || (document.getElementById('titleList').querySelector('.title-text')||{}).textContent || '';
-  var body = document.getElementById('bodyArea').value;
-  var tags = Array.from(document.getElementById('tagsWrap').querySelectorAll('.tag')).map(function(t){return t.textContent}).join(' ');
-  cp([title, '', body, '', tags].join('\n'));
-}
-
-async function doImgGen() {
-  var prompt = document.getElementById('promptInput').value.trim();
-  if (!prompt) { showTip('imgTip','请先输入图片描述'); return; }
+async function doImgGen(){
+  var prompt=document.getElementById('promptInput').value.trim();
+  if(!prompt){showTip('imgTip','请先输入图片描述');return}
   hideTip('imgTip');
-  document.getElementById('imgBtn').disabled = true;
+  document.getElementById('imgBtn').disabled=true;
   document.getElementById('imgLoading').classList.add('show');
   document.getElementById('imgResult').classList.remove('show');
-  var enhancedPrompt = prompt;
-  try {
-    var pRes = await fetch('/api/rewrite', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({messages:[{role:'user',content:'你是AI绘图提示词专家。将以下中文描述优化为高质量英文图片生成提示词，风格：'+currentImgStyle+'，适合小红书封面，不超过80词，只输出提示词本身：\n\n'+prompt}]})
-    });
-    var pData = await pRes.json();
-    enhancedPrompt = pData.content[0].text.trim();
-  } catch(e) {}
-  try {
-    var res = await fetch('/api/generate-image', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({prompt: enhancedPrompt, image_size: currentRatio})
-    });
-    var data = await res.json();
-    if (data.error) { showTip('imgTip', data.error); }
-    else { renderImgGrid(data.images||[]); }
-  } catch(e) { showTip('imgTip','生图失败，请稍后重试。('+e.message+')'); }
-  document.getElementById('imgBtn').disabled = false;
+  var enhancedPrompt=prompt;
+  try{var pRes=await fetch('/api/rewrite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:'你是AI绘图提示词专家。将以下中文描述优化为高质量英文图片生成提示词，风格：'+currentImgStyle+'，适合小红书封面，不超过80词，只输出提示词本身：\n\n'+prompt}]})});var pData=await pRes.json();enhancedPrompt=pData.content[0].text.trim()}catch(e){}
+  try{
+    var res=await fetch('/api/generate-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:enhancedPrompt,image_size:currentRatio})});
+    var data=await res.json();
+    if(data.error){showTip('imgTip',data.error)}else{renderImgGrid(data.images||[])}
+  }catch(e){showTip('imgTip','生图失败，请稍后重试。('+e.message+')')}
+  document.getElementById('imgBtn').disabled=false;
   document.getElementById('imgLoading').classList.remove('show');
 }
 
-function renderImgGrid(images) {
-  var grid = document.getElementById('genImgGrid');
-  grid.innerHTML = '';
-  if (!images.length) {
-    grid.innerHTML = '<p style="color:var(--text3);font-size:13px;grid-column:1/-1;text-align:center;padding:20px">未返回图片，请重试</p>';
-  } else {
-    images.forEach(function(img) {
-      var url = img.url || (img.b64_json && ('data:image/png;base64,'+img.b64_json));
-      if (!url) return;
-      var box = document.createElement('div');
-      box.className = 'gen-img-box';
-      box.innerHTML = '<img src="'+url+'" alt="生成图片" onclick="openLightbox(\''+url+'\')" />'
-        +'<button class="img-download" onclick="downloadImg(\''+url+'\',event)"><i class="ti ti-download" style="font-size:13px"></i> 保存</button>';
-      grid.appendChild(box);
-    });
-  }
-  document.getElementById('imgResult').classList.add('show');
-}
-
-function openLightbox(url) { document.getElementById('lightboxImg').src=url; document.getElementById('lightbox').classList.add('show'); }
-function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); }
-function downloadImg(url,e) { e.stopPropagation(); var a=document.createElement('a'); a.href=url; a.download='xhs-ai-'+Date.now()+'.png'; a.click(); }
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function cp(text){ navigator.clipboard.writeText(text).then(function(){showToast('已复制到剪贴板')}).catch(function(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('已复制到剪贴板')}); }
+function renderImgGrid(images){var grid=document.getElementById('genImgGrid');grid.innerHTML='';if(!images.length){grid.innerHTML='<p style="color:var(--text3);font-size:13px;grid-column:1/-1;text-align:center;padding:20px">未返回图片，请重试</p>'}else{images.forEach(function(img){var url=img.url||(img.b64_json&&('data:image/png;base64,'+img.b64_json));if(!url)return;var box=document.createElement('div');box.className='gen-img-box';box.innerHTML='<img src="'+url+'" alt="生成图片" onclick="openLightbox(\''+url+'\')" /><button class="img-download" onclick="downloadImg(\''+url+'\',event)"><i class="ti ti-download" style="font-size:13px"></i> 保存</button>';grid.appendChild(box)})}document.getElementById('imgResult').classList.add('show')}
+function openLightbox(url){document.getElementById('lightboxImg').src=url;document.getElementById('lightbox').classList.add('show')}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('show')}
+function downloadImg(url,e){e.stopPropagation();var a=document.createElement('a');a.href=url;a.download='xhs-ai-'+Date.now()+'.png';a.click()}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function cp(text){navigator.clipboard.writeText(text).then(function(){showToast('已复制到剪贴板')}).catch(function(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('已复制到剪贴板')})}
 </script>
 </body>
 </html>
