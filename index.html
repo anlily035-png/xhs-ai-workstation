@@ -58,6 +58,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .spinner{width:26px;height:26px;border:2.5px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading p{font-size:14px;color:var(--text2)}
+.fetch-status{display:none;align-items:center;gap:8px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:var(--radius-sm);margin-bottom:12px;font-size:13px;color:#0369a1}
+.fetch-status.show{display:flex}
+.fetch-status.error{background:#fff8f9;border-color:var(--red-border);color:#cc1f35}
 .result-card{display:none}
 .result-card.show{display:block}
 .result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
@@ -109,11 +112,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="page-rewrite" class="page active">
   <div class="hero">
     <h1>让 AI 替你写更懂小红书的笔记</h1>
-    <p>输入参考链接或上传图片 · 自动生成 <em>标题 / 正文 / 标签</em> · 一键复制发布</p>
+    <p>粘贴链接自动读取内容 · 生成 <em>标题 / 正文 / 标签</em> · 一键复制发布</p>
   </div>
   <div class="card">
-    <div class="section-label"><i class="ti ti-link" style="font-size:14px"></i> 参考链接（选填）</div>
-    <textarea class="textarea" id="urlInput" rows="2" placeholder="粘贴小红书笔记链接，支持多个（换行分隔）"></textarea>
+    <div class="section-label"><i class="ti ti-link" style="font-size:14px"></i> 小红书笔记链接</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <textarea class="textarea" id="urlInput" rows="2" placeholder="粘贴小红书笔记链接，插件会自动读取笔记内容..." style="flex:1;margin-bottom:0"></textarea>
+      <button class="btn-primary" id="fetchBtn" onclick="fetchFromPlugin()" style="align-self:flex-end;white-space:nowrap;height:38px;padding:0 16px">
+        <i class="ti ti-download" style="font-size:14px"></i> 读取
+      </button>
+    </div>
+    <div class="fetch-status" id="fetchStatus">
+      <div class="spinner" style="width:16px;height:16px;border-width:2px;margin:0"></div>
+      <span id="fetchStatusText">正在读取笔记内容...</span>
+    </div>
     <div class="or-divider"><span>或者上传参考图片</span></div>
     <div id="uploadedPreview" class="uploaded-preview">
       <img id="previewImg" src="" alt="预览" />
@@ -128,7 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div style="margin-top:16px">
       <div class="section-label"><i class="ti ti-pencil" style="font-size:14px"></i> 内容主题（选填）</div>
       <input class="text-input" id="topicInput" type="text" placeholder="例：主题班会 PPT / 公务员面试技巧 / 好物推荐" />
-      <p class="hint">填写主题后 AI 生成更精准</p>
+      <p class="hint">读取链接后自动填入，也可手动填写</p>
     </div>
     <div style="margin-top:16px">
       <div class="section-label"><i class="ti ti-adjustments-horizontal" style="font-size:14px"></i> 笔记风格</div>
@@ -232,6 +244,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 var currentStyle='种草安利',currentRatio='1024x1024',currentImgStyle='日系小清新',uploadedImageData=null,selectedTitleText='';
+var fetchedContent = null;
+
 function switchTab(tab){document.querySelectorAll('.nav-tab').forEach(function(t,i){t.classList.toggle('active',(tab==='rewrite'&&i===0)||(tab==='imggen'&&i===1))});document.getElementById('page-rewrite').classList.toggle('active',tab==='rewrite');document.getElementById('page-imggen').classList.toggle('active',tab==='imggen')}
 function selectChip(el,groupId,val){document.getElementById(groupId).querySelectorAll('.chip').forEach(function(c){c.classList.remove('active')});el.classList.add('active');if(groupId==='styleChips')currentStyle=val;else if(groupId==='ratioChips')currentRatio=val;else if(groupId==='imgStyleChips')currentImgStyle=val}
 function handleUpload(input){var file=input.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){uploadedImageData=e.target.result;document.getElementById('previewImg').src=uploadedImageData;document.getElementById('previewName').textContent=file.name;document.getElementById('uploadedPreview').classList.add('show');document.getElementById('uploadZone').style.display='none'};reader.readAsDataURL(file)}
@@ -240,27 +254,101 @@ function showTip(id,msg){var el=document.getElementById(id);el.querySelector('sp
 function hideTip(id){document.getElementById(id).classList.remove('show')}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2200)}
 
-async function doRewrite(){
-  var url=document.getElementById('urlInput').value.trim(),topic=document.getElementById('topicInput').value.trim();
-  if(!url&&!uploadedImageData&&!topic){showTip('tip','请输入参考链接、上传图片，或填写内容主题，至少提供一项。');return}
+function showFetchStatus(msg, isError) {
+  var el = document.getElementById('fetchStatus');
+  document.getElementById('fetchStatusText').textContent = msg;
+  el.className = 'fetch-status show' + (isError ? ' error' : '');
+}
+function hideFetchStatus() {
+  document.getElementById('fetchStatus').classList.remove('show');
+}
+
+async function fetchFromPlugin() {
+  var url = document.getElementById('urlInput').value.trim();
+  if (!url || !url.includes('xiaohongshu.com')) {
+    showTip('tip', '请先粘贴小红书笔记链接');
+    return;
+  }
   hideTip('tip');
-  document.getElementById('rewriteBtn').disabled=true;
+  showFetchStatus('正在通过插件读取笔记内容，请稍候...');
+  document.getElementById('fetchBtn').disabled = true;
+
+  try {
+    var response = await new Promise(function(resolve, reject) {
+      if (typeof chrome === 'undefined' || !chrome.runtime) {
+        reject(new Error('未检测到插件，请确认已安装小红书AI工作台助手插件'));
+        return;
+      }
+      chrome.runtime.sendMessage(
+        undefined,
+        { action: 'fetchContent', url: url },
+        function(res) {
+          if (chrome.runtime.lastError) {
+            reject(new Error('插件通信失败，请刷新页面重试'));
+          } else {
+            resolve(res);
+          }
+        }
+      );
+    });
+
+    if (response && response.error) {
+      showFetchStatus(response.error, true);
+    } else if (response && (response.title || response.body)) {
+      fetchedContent = response;
+      if (response.title) document.getElementById('topicInput').value = response.title;
+      showFetchStatus('读取成功！已获取笔记内容，点击改写即可');
+      showToast('笔记内容读取成功');
+    } else {
+      showFetchStatus('未能读取到内容，请确认链接正确且已登录小红书', true);
+    }
+  } catch(e) {
+    showFetchStatus(e.message, true);
+  }
+
+  document.getElementById('fetchBtn').disabled = false;
+}
+
+async function doRewrite() {
+  var url = document.getElementById('urlInput').value.trim();
+  var topic = document.getElementById('topicInput').value.trim();
+  if (!url && !uploadedImageData && !topic && !fetchedContent) {
+    showTip('tip', '请输入参考链接、上传图片，或填写内容主题，至少提供一项。');
+    return;
+  }
+  hideTip('tip');
+  document.getElementById('rewriteBtn').disabled = true;
   document.getElementById('rewriteLoading').classList.add('show');
   document.getElementById('rewriteResult').classList.remove('show');
-  var ctx=[];
-  if(url)ctx.push('参考链接：'+url);
-  if(topic)ctx.push('内容主题：'+topic);
-  if(uploadedImageData)ctx.push('用户已上传参考图片作为灵感');
-  var userPrompt='请根据以下信息，创作一篇"'+currentStyle+'"风格的小红书笔记。\n\n'+ctx.join('\n')+'\n\n输出格式（严格JSON，不含其他任何内容）：\n{"titles":["标题1","标题2","标题3","标题4","标题5"],"body":"正文，有emoji，分段清晰，280-350字","tags":["#标签1","#标签2","#标签3","#标签4","#标签5","#标签6"]}\n\n要求：标题各有不同角度和钩子；正文真实接地气，不要营销腔；标签贴合搜索习惯。';
-  try{
-    var res=await fetch('/api/rewrite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:'你是专业的小红书内容运营专家。严格按JSON格式输出，不含任何额外文字或markdown标记。',messages:[{role:'user',content:userPrompt}]})});
-    var data=await res.json();
-    var text=data.content[0].text;
-    var clean=text.replace(/```json|```/g,'').trim();
-    var parsed=JSON.parse(clean);
+
+  var ctx = [];
+  if (fetchedContent && fetchedContent.title) ctx.push('原笔记标题：' + fetchedContent.title);
+  if (fetchedContent && fetchedContent.body) ctx.push('原笔记正文：' + fetchedContent.body);
+  if (!fetchedContent && url) ctx.push('参考链接：' + url);
+  if (topic) ctx.push('内容主题：' + topic);
+  if (uploadedImageData) ctx.push('用户已上传参考图片作为灵感');
+
+  var userPrompt = '请根据以下信息，创作一篇"' + currentStyle + '"风格的小红书笔记。\n\n' + ctx.join('\n') + '\n\n输出格式（严格JSON，不含其他任何内容）：\n{"titles":["标题1","标题2","标题3","标题4","标题5"],"body":"正文，有emoji，分段清晰，280-350字","tags":["#标签1","#标签2","#标签3","#标签4","#标签5","#标签6"]}\n\n要求：标题各有不同角度和钩子；正文真实接地气，不要营销腔；标签贴合搜索习惯。';
+
+  try {
+    var res = await fetch('/api/rewrite', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        system: '你是专业的小红书内容运营专家。严格按JSON格式输出，不含任何额外文字或markdown标记。',
+        messages: [{role: 'user', content: userPrompt}]
+      })
+    });
+    var data = await res.json();
+    var text = data.content[0].text;
+    var clean = text.replace(/```json|```/g, '').trim();
+    var parsed = JSON.parse(clean);
     renderRewrite(parsed);
-  }catch(e){showTip('tip','生成失败，请稍后重试。('+e.message+')')}
-  document.getElementById('rewriteBtn').disabled=false;
+  } catch(e) {
+    showTip('tip', '生成失败，请稍后重试。(' + e.message + ')');
+  }
+
+  document.getElementById('rewriteBtn').disabled = false;
   document.getElementById('rewriteLoading').classList.remove('show');
 }
 
@@ -304,18 +392,6 @@ function closeLightbox(){document.getElementById('lightbox').classList.remove('s
 function downloadImg(url,e){e.stopPropagation();var a=document.createElement('a');a.href=url;a.download='xhs-ai-'+Date.now()+'.png';a.click()}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function cp(text){navigator.clipboard.writeText(text).then(function(){showToast('已复制到剪贴板')}).catch(function(){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('已复制到剪贴板')})}
-
-// 页面加载时检查URL参数（插件传过来的内容）
-window.addEventListener('load',function(){
-  var params=new URLSearchParams(window.location.search);
-  if(params.get('title')||params.get('body')){
-    var content='';
-    if(params.get('title'))content+='标题：'+params.get('title')+'\n\n';
-    if(params.get('body'))content+=params.get('body');
-    document.getElementById('urlInput').value=content;
-    showToast('已自动填入笔记内容，点击改写即可');
-  }
-});
 </script>
 </body>
 </html>
